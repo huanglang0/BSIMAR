@@ -216,9 +216,9 @@ Several advanced techniques are implemented to handle the severely imbalanced di
 
 ## 📊 Results
 
-Our approach achieves superior performance compared to existing methods in both cross-circuit parasitic prediction accuracy and handling of imbalanced parasitic distributions.
+Our approach delivers better performance compared to existing model architectures.
 
-### Label Distribution Analysis
+### Predicted I-V and C-V curves
 
 ![Label Distribution](imgs/train_dataset_label_distributionl.png)
 
