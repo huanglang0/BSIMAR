@@ -220,11 +220,11 @@ Our approach delivers better performance compared to existing model architecture
 
 ### Predicted I-V and C-V curves
 
-![Label Distribution](imgs/fig_data_all_6fig.pdf)
+![I-V and C-V curves](imgs/fig_data_all_6fig.pdf)
 
 ### SRAM simulation
 
-![MSE Gain Across Test Datasets](imgs/sram_sim.pdf)
+![SRAM simulation](imgs/sram_sim.pdf)
 
 ### Comprehensive Error Comparison
 
