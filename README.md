@@ -84,9 +84,9 @@ pip install -r requirements.txt
 
 ## 🚀 Usage
 
-### Dataset Preparation
+### Models
 
-#### Dataset Download Instructions
+#### Models Download Instructions
 
 The datasets used for training and testing CircuitGCL are available for download via the following links. You can use `curl` to directly download these files from the provided URLs.
 
@@ -275,8 +275,8 @@ Our approach delivers better performance compared to existing model architecture
 If you find this work useful for your research, please consider citing:
 
 ```bibtex
-@article{circuitgcl2025,
-  title={Transferable Parasitic Estimation via Graph Contrastive Learning and Label Rebalancing in AMS Circuits},
+@article{BSIMAR2025,
+  title={An Autoregressive Compact Model},
   author={Author1 and Author2 and Author3},
   journal={Conference/Journal Name},
   year={2025},
