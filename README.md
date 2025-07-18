@@ -36,11 +36,11 @@ Our framework supports simultaneous prediction of three target types:
 
 ## ✨ Key Features
 
-CircuitGCL addresses two major challenges in parasitic estimation:
+BSIMAR addresses these challenges in Compact Model:
 
-1. **Enhanced Transferability** - Through self-supervised graph contrastive learning (SGRL), our model can generalize knowledge across different circuit designs
-2. **Robust Label Handling** - Using specialized loss functions and rebalancing strategies to address the severe imbalance in parasitic capacitance distributions
-3. **State-of-the-Art Performance** - Significant improvements in parasitic prediction accuracy compared to existing methods
+1. **Unified Autoregressive Modeling** - Given the process parameters and terminal voltages,our single AR model generates all key performance characteristics—including I-V, Q-V, and C-V curves—at once
+2. **High Accuracy via Scaling Law** - Pre-training followed by fine-tuning enables the model to achieve high accuracy and strong generalization
+3. **Scalable Simulation Acceleration** - The parallelization capability enables accelerated simulation of large-scale AMS circuits
 
 ![Circuit Motivation](imgs/fig-motivation.png)
 
