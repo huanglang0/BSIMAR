@@ -226,14 +226,6 @@ Our approach delivers better performance compared to existing model architecture
 
 ![SRAM simulation](imgs/sram_sim.png)
 
-### Comprehensive Error Comparison
-
-Our method achieves significant improvements over existing approaches:
-
-- Up to **42.48%** reduction in MSE
-- Up to **41.08%** improvement in R²
-- Consistently better performance across different circuit designs
-
 #### Complete Performance Comparison Table
 
 | Testset              | Average   |
