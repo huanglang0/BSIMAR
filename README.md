@@ -71,12 +71,12 @@ BSIMAR addresses these challenges in Compact Model:
 
 ```bash
 # Clone the repository
-git clone https://github.com/username/CircuitGCL.git
-cd CircuitGCL
+git clone https://github.com/username/BSIMAR.git
+cd BSIMAR
 
 # Create and activate a conda environment
-conda create -n circuitgcl python=3.10
-conda activate circuitgcl
+conda create -n BSIMAR python=3.10
+conda activate BSIMAR
 
 # Install dependencies
 pip install -r requirements.txt
