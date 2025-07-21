@@ -47,15 +47,12 @@ BSIMAR addresses these challenges in Compact Model:
 
 ```
 .
-├── balanced_mse.py          # Implementation of balanced MSE loss functions
-├── downstream_train.py      # Training script for downstream tasks
+├── pre_train.py             # Achieve learning for various nodes and devices
+├── fine_tuning.py           # Fine-tune the model on devices at a specific process node
 ├── main.py                  # Main entry point for the training pipeline
-├── model.py                 # GNN model architecture definitions
+├── model.py                 # Autoregressive model architecture definitions
 ├── requirements.txt         # Python dependencies
-├── sampling.py              # Graph sampling utilities
-├── sgrl_models.py           # Self-supervised graph contrastive learning models
-├── sgrl_train.py            # Training script for contrastive learning
-├── sram_dataset.py          # Dataset loading and preprocessing
+├── sampling.py              # Data sampling utilities
 └── utils.py                 # Utility functions
 ```
 
