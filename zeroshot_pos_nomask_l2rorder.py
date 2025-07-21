@@ -11,7 +11,7 @@ from read_csv import read_csv
 import os
 
 
-# 定义带位置嵌入的模型（无多头注意力）
+# Define model with positional embedding (no multi-head attention)
 class DecoderOnlyModel(nn.Module):
     def __init__(self, input_dim=15, target_dim=9, pos_emb_dim=32):
         super().__init__()
@@ -20,13 +20,13 @@ class DecoderOnlyModel(nn.Module):
         self.pos_emb_dim = pos_emb_dim
         self.total_dim = input_dim + target_dim
 
-        # 位置嵌入层
+        # Position embedding layer
         self.pos_emb = nn.Embedding(self.total_dim, pos_emb_dim)
 
-        # 特征投影层（处理原始特征+位置嵌入）
+        # Feature projection layer (handles raw features + position embedding)
         self.feature_proj = nn.Linear(1 + pos_emb_dim, 1)
 
-        # 解码器（保持不变）
+        # Decoder (remains unchanged)
         self.decoder = nn.Sequential(
             nn.Linear(self.total_dim, 128),
             nn.LeakyReLU(),
@@ -50,27 +50,27 @@ class DecoderOnlyModel(nn.Module):
     def forward(self, x):
         batch_size, seq_len = x.shape
 
-        # 创建位置索引 [0, 1, 2, ..., total_dim-1]
+        # Create position indices [0, 1, 2, ..., total_dim-1]
         positions = torch.arange(seq_len, device=x.device).unsqueeze(0).repeat(batch_size, 1)
 
-        # 获取位置嵌入 [batch_size, seq_len, pos_emb_dim]
+        # Get position embeddings [batch_size, seq_len, pos_emb_dim]
         pos_embeddings = self.pos_emb(positions)
 
-        # 将输入特征重塑为三维并添加位置嵌入
+        # Reshape input features to 3D and add position embeddings
         x_reshaped = x.view(batch_size, seq_len, 1)  # [batch, seq, 1]
         x_with_pos = torch.cat([x_reshaped, pos_embeddings], dim=-1)  # [batch, seq, 1+pos_emb_dim]
 
-        # 特征投影
+        # Feature projection
         projected = self.feature_proj(x_with_pos)  # [batch, seq, 1]
 
-        # 移除多头注意力机制后，直接展平投影结果
+        # Flatten the projected result after removing multi-head attention
         projected_flat = projected.squeeze(-1)  # [batch, seq]
 
-        # 解码器
+        # Decoder
         return self.decoder(projected_flat)
 
 
-# 新的数据加载函数
+# New data loading function
 def load_dataset(file_list):
     all_inputs = []
     all_outputs = []
@@ -78,14 +78,14 @@ def load_dataset(file_list):
     output_head = None
 
     for file in file_list:
-        # 假设read_csv函数已定义
+        # Assume read_csv function is defined
         i_head, inputs, o_head, outputs = read_csv(file)
         if input_head is None:
             input_head = i_head
             output_head = o_head
-        # 校验文件头一致性
-        assert i_head == input_head, "输入特征头不匹配"
-        assert o_head == output_head, "输出特征头不匹配"
+        # Verify header consistency
+        assert i_head == input_head, "Input feature headers do not match"
+        assert o_head == output_head, "Output feature headers do not match"
 
         all_inputs.extend(inputs)
         all_outputs.extend(outputs)
@@ -99,17 +99,17 @@ def load_dataset(file_list):
 def calculate_metrics(y_true, y_pred, target_names):
     metrics = {}
     for i, target in enumerate(target_names):
-        # 通过目标名称获取列索引
+        # Get column index by target name
         col_idx = target_names.index(target)
 
-        # 特殊处理qd目标：忽略真实值的绝对值小于0.05e-16的样本
+        # Special handling for qd targets: ignore samples where true value absolute value < 0.05e-16
         if target in ['qd', 'qg', 'qb']:
-            # 使用绝对值进行过滤
+            # Filter using absolute value
             condition = np.abs(y_true[:, col_idx]) >= 0.05e-16
             y_t = y_true[condition, col_idx]
             y_p = y_pred[condition, col_idx]
 
-            # 检查是否有有效样本
+            # Check if there are valid samples
             if len(y_t) == 0:
                 metrics[target] = {
                     'MSE': np.nan,
@@ -118,14 +118,14 @@ def calculate_metrics(y_true, y_pred, target_names):
                     'MRE(%)': np.nan
                 }
                 continue
-        # 新增：特殊处理'ids', 'didsdvg', 'didsdvd'目标：忽略绝对值<=0.0002的样本
+        # Special handling for 'ids', 'didsdvg', 'didsdvd' targets: ignore samples with absolute value <= 0.0002
         elif target in ['ids', 'didsdvg']:
-            # 使用绝对值进行过滤
+            # Filter using absolute value
             condition = np.abs(y_true[:, col_idx]) > 0.0002
             y_t = y_true[condition, col_idx]
             y_p = y_pred[condition, col_idx]
 
-            # 检查是否有有效样本
+            # Check if there are valid samples
             if len(y_t) == 0:
                 metrics[target] = {
                     'MSE': np.nan,
@@ -135,12 +135,12 @@ def calculate_metrics(y_true, y_pred, target_names):
                 }
                 continue
         elif target in ['didsdvd']:
-            # 使用绝对值进行过滤
+            # Filter using absolute value
             condition = np.abs(y_true[:, col_idx]) > 0.00005
             y_t = y_true[condition, col_idx]
             y_p = y_pred[condition, col_idx]
 
-            # 检查是否有有效样本
+            # Check if there are valid samples
             if len(y_t) == 0:
                 metrics[target] = {
                     'MSE': np.nan,
@@ -150,7 +150,7 @@ def calculate_metrics(y_true, y_pred, target_names):
                 }
                 continue
         else:
-            # 其他目标使用非零样本
+            # For other targets use non-zero samples
             non_zero = y_true[:, col_idx] != 0
             y_t = y_true[non_zero, col_idx]
             y_p = y_pred[non_zero, col_idx]
@@ -164,12 +164,12 @@ def calculate_metrics(y_true, y_pred, target_names):
                 }
                 continue
 
-        # 计算指标
+        # Calculate metrics
         mse = mean_squared_error(y_t, y_p)
         rmse = np.sqrt(mse)
         r2 = r2_score(y_t, y_p)
 
-        # MRE计算（对qd使用特殊过滤后的样本）
+        # MRE calculation (uses specially filtered samples for qd)
         mre = np.mean(np.abs((y_t - y_p) / y_t)) * 100
 
         metrics[target] = {
@@ -181,64 +181,64 @@ def calculate_metrics(y_true, y_pred, target_names):
     return metrics
 
 
-# 修改后的散点图可视化函数 - 添加PDF保存
+# Modified scatter plot visualization function - add PDF saving
 def plot_scatter_comparison(y_true, y_pred, target_names):
     plt.figure(figsize=(20, 15), dpi=100)
     for i, target in enumerate(target_names):
-        plt.subplot(3, 3, i + 1)  # 3x3网格布局
+        plt.subplot(3, 3, i + 1)  # 3x3 grid layout
 
-        # 通过目标名称获取列索引
+        # Get column index by target name
         col_idx = target_names.index(target)
 
-        # 使用布尔索引过滤零值（保持与原始代码一致的安全检查）
+        # Use boolean indexing to filter zero values (safe check consistent with original code)
         non_zero = y_true[:, col_idx] != 0
         y_t = y_true[non_zero, col_idx]
         y_p = y_pred[non_zero, col_idx]
 
-        # 计算统计指标
+        # Calculate statistical metrics
         r2 = r2_score(y_t, y_p)
         mse = mean_squared_error(y_t, y_p)
 
-        # 绘制散点图
+        # Plot scatter
         plt.scatter(y_t, y_p, alpha=0.5, label=f'R²={r2:.4f}\nMSE={mse:.2e}')
         max_val = max(y_t.max(), y_p.max())
         min_val = min(y_t.min(), y_p.min())
         plt.plot([min_val, max_val], [min_val, max_val], 'r--', linewidth=1)
 
-        # 设置坐标轴标签和刻度字体大小
+        # Set axis labels and tick font sizes
         plt.xlabel('True Value', fontsize=15)
         plt.ylabel('Predicted Value', fontsize=15)
         plt.title(target, fontsize=20)
         plt.legend(fontsize=20)
         plt.grid(True)
 
-        # 增大刻度标签字体
+        # Increase tick label font size
         plt.tick_params(axis='both', which='major', labelsize=25)
         plt.tick_params(axis='both', which='minor', labelsize=25)
 
     plt.tight_layout()
 
-    # 保存图表 - 同时保存为PNG和PDF
+    # Save plots - both as PNG and PDF
     os.makedirs("plots", exist_ok=True)
     base_path = "/home/huangl/myprojects/mos_model_nn/picture"
 
-    # PNG版本
+    # PNG version
     scatter_png_path = os.path.join(base_path, "scatter_comparison.png")
     plt.savefig(scatter_png_path, bbox_inches='tight')
-    print(f"散点图(PNG)已保存至: {scatter_png_path}")
+    print(f"Scatter plot (PNG) saved to: {scatter_png_path}")
 
-    # PDF版本
+    # PDF version
     scatter_pdf_path = os.path.join(base_path, "scatter_comparison.pdf")
     plt.savefig(scatter_pdf_path, bbox_inches='tight', format='pdf')
-    print(f"散点图(PDF)已保存至: {scatter_pdf_path}")
+    print(f"Scatter plot (PDF) saved to: {scatter_pdf_path}")
 
     plt.show()
     plt.close()
 
 
-# 修改后的VGS变化曲线图函数 - 添加自定义颜色支持
+# Modified VGS variation plot function - add custom color support
 def plot_vgs_comparison(X_test, y_true, y_pred, target_names, input_head):
-    # 获取vgs和vds在输入特征中的索引
+    # Get indices of vgs and vds in input features
     vgs_idx = input_head.index('vgs') if 'vgs' in input_head else None
     vds_idx = input_head.index('vds') if 'vds' in input_head else None
 
@@ -250,19 +250,19 @@ def plot_vgs_comparison(X_test, y_true, y_pred, target_names, input_head):
     vgs_values = X_test[:, vgs_idx]
     vds_values = X_test[:, vds_idx]
 
-    # 获取唯一的vds值
+    # Get unique vds values
     unique_vds = np.unique(vds_values)
     print(f"Found {len(unique_vds)} unique VDS values: {unique_vds}")
 
-    # ====== 自定义颜色方案 ======
-    # 定义特定Vds值的自定义颜色
+    # ====== Custom color scheme ======
+    # Define custom colors for specific Vds values
     custom_colors = {
-        # 格式: Vds值: (真实值颜色, 预测值颜色)
-        0.5: ('red', 'blue'),  # T_vds=0.5用红色，pre_vds=0.5用蓝色
-        1: ('green', 'black')  # T_vds=1用绿色，pre_vds=1用紫色
+        # Format: Vds value: (true color, prediction color)
+        0.5: ('red', 'blue'),  # T_vds=0.5: red, pre_vds=0.5: blue
+        1: ('green', 'black')  # T_vds=1: green, pre_vds=1: purple
     }
 
-    # 为其他Vds值创建颜色映射
+    # Create color map for other Vds values
     other_vds = [v for v in unique_vds if v not in custom_colors]
     if other_vds:
         norm = mcolors.Normalize(vmin=min(other_vds), vmax=max(other_vds))
@@ -272,14 +272,14 @@ def plot_vgs_comparison(X_test, y_true, y_pred, target_names, input_head):
         color_map = None
 
     for i, target in enumerate(target_names):
-        plt.subplot(3, 3, i + 1)  # 3x3网格布局
+        plt.subplot(3, 3, i + 1)  # 3x3 grid layout
 
-        # 获取当前目标的列索引
+        # Get column index for current target
         col_idx = target_names.index(target)
 
-        # 为每个vds值绘制曲线
+        # Plot curves for each vds value
         for vds in unique_vds:
-            # 筛选当前vds对应的样本
+            # Filter samples for current vds
             mask = vds_values == vds
             if np.sum(mask) == 0:
                 continue
@@ -288,13 +288,13 @@ def plot_vgs_comparison(X_test, y_true, y_pred, target_names, input_head):
             y_true_current = y_true[mask, col_idx]
             y_pred_current = y_pred[mask, col_idx]
 
-            # 按vgs排序以保证曲线连续
+            # Sort by vgs to ensure continuous curve
             sort_idx = np.argsort(vgs_current)
             vgs_sorted = vgs_current[sort_idx]
             y_true_sorted = y_true_current[sort_idx]
             y_pred_sorted = y_pred_current[sort_idx]
 
-            # 获取当前vds对应的颜色
+            # Get colors for current vds
             if vds in custom_colors:
                 true_color, pred_color = custom_colors[vds]
             else:
@@ -306,56 +306,56 @@ def plot_vgs_comparison(X_test, y_true, y_pred, target_names, input_head):
                     true_color = 'blue'
                     pred_color = 'red'
 
-            # 绘制真实值和预测值随Vgs变化的曲线
+            # Plot true and predicted values vs Vgs
             plt.plot(vgs_sorted, y_true_sorted, 'o-', markersize=4,
                      label=f'T_vds={vds:.2f}', color=true_color, alpha=0.7)
             plt.plot(vgs_sorted, y_pred_sorted, 'x-', markersize=4,
                      label=f'pre_vds={vds:.2f}', color=pred_color, alpha=0.7, linestyle='--')
 
-        # 设置坐标轴标签和刻度字体大小
+        # Set axis labels and tick font sizes
         plt.xlabel('Vgs', fontsize=20)
         plt.ylabel(target, fontsize=20)
         plt.title(f'{target} vs Vgs', fontsize=20)
         plt.grid(True)
 
-        # 增大刻度标签字体
+        # Increase tick label font size
         plt.tick_params(axis='both', which='major', labelsize=20)
         plt.tick_params(axis='both', which='minor', labelsize=20)
 
-        # 添加图例（只添加一次以避免重复）
+        # Add legend (only once to avoid duplication)
         if i == 0:
             handles, labels = plt.gca().get_legend_handles_labels()
-            # 简化图例：只显示每个vds值的一个条目
+            # Simplify legend: show only one entry per vds value
             unique_labels = {}
             for handle, label in zip(handles, labels):
-                # 移除重复标签
+                # Remove duplicate labels
                 if label not in unique_labels:
                     unique_labels[label] = handle
 
-            # 创建自定义图例
+            # Create custom legend
             plt.legend(unique_labels.values(), unique_labels.keys(), fontsize=14, loc='best',
-                       ncol=2)  # 分两列显示
+                       ncol=2)  # Display in two columns
 
     plt.tight_layout()
 
-    # 保存图表 - 同时保存为PNG和PDF
+    # Save plots - both as PNG and PDF
     base_path = "/home/huangl/myprojects/mos_model_nn/picture"
 
-    # PNG版本
+    # PNG version
     vgs_png_path = os.path.join(base_path, "vgs_comparison.png")
     plt.savefig(vgs_png_path, bbox_inches='tight')
-    print(f"VGS变化曲线图(PNG)已保存至: {vgs_png_path}")
+    print(f"VGS variation plot (PNG) saved to: {vgs_png_path}")
 
-    # PDF版本
+    # PDF version
     vgs_pdf_path = os.path.join(base_path, "vgs_comparison.pdf")
     plt.savefig(vgs_pdf_path, bbox_inches='tight', format='pdf')
-    print(f"VGS变化曲线图(PDF)已保存至: {vgs_pdf_path}")
+    print(f"VGS variation plot (PDF) saved to: {vgs_pdf_path}")
 
     plt.show()
     plt.close()
 
 
-# 随机种子设置
+# Set random seed
 def set_seed(seed=42):
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -365,20 +365,20 @@ def set_seed(seed=42):
     torch.backends.cudnn.benchmark = False
 
 
-# 主函数 - 修改为仅测试模式
+# Main function - modified for test-only mode
 def main():
     set_seed()
-    device_id = 1  # 指定使用 GPU 0
+    device_id = 1  # Specify to use GPU 1
     torch.cuda.set_device(device_id)
     device = torch.device(f"cuda:{device_id}" if torch.cuda.is_available() else "cpu")
 
-    # ================== 配置参数 ==================
+    # ================== Configuration Parameters ==================
     batch_size = 65536
 
-    # ================== 数据加载配置 ==================
+    # ================== Data Loading Configuration ==================
 
-    # 注意：为了正确进行预处理，我们仍然需要训练数据的统计信息
-    # 因此需要加载训练数据来拟合标准化器
+    # Note: To preprocess correctly, we still need training data statistics
+    # Therefore need to load training data to fit the scalers
     train_files = [
         "/home/huangl/myprojects/mos_model_nn/data/FinFet_7nm/Finfet_lhs_lhs300000/nmos/SIM/output.csv",
         "/home/huangl/myprojects/mos_model_nn/data/FinFet_7nm/Finfet_lhs_lhs300000/nmos/SIM1/output.csv",
@@ -399,29 +399,29 @@ def main():
         "/home/huangl/myprojects/mos_model_nn/data/FinFet_16nm/Finfet_lhs_lhs300000/pmos/SIM5/output.csv",
     ]
     test_files = ["/home/huangl/myprojects/mos_model_nn/data/Test/finfet_7nm_20000/nch_svt_2vds/output.csv"]
-    # ================== 数据加载 ==================
+    # ================== Data Loading ==================
     print("Loading training data for fitting scalers...")
     X_train, y_train_full, input_head, output_head = load_dataset(train_files)
     print("Loading test data...")
     X_test, y_test_full, _, _ = load_dataset(test_files)
 
     TARGETS = ['qg', 'qb', 'qd', 'ids', 'didsdvg', 'didsdvd', 'cgg', 'cgd', 'cgs']
-    LOG_TARGETS = ['ids', 'didsdvg', 'didsdvd']  # 需要Log处理的目标
-    ABS_TARGETS = ['ids', 'didsdvg', 'didsdvd']  # 需要取绝对值的目标
+    LOG_TARGETS = ['ids', 'didsdvg', 'didsdvd']  # Targets requiring Log transformation
+    ABS_TARGETS = ['ids', 'didsdvg', 'didsdvd']  # Targets requiring absolute value
 
-    # ================== 数据处理 ==================
-    # 对特定目标取绝对值
+    # ================== Data Processing ==================
+    # Take absolute value for specific targets
     print("\nApplying absolute value to specific targets...")
     abs_indices = [output_head.index(t) for t in ABS_TARGETS]
     for i in abs_indices:
         y_train_full[:, i] = np.abs(y_train_full[:, i])
         y_test_full[:, i] = np.abs(y_test_full[:, i])
 
-    # 提取目标列
+    # Extract target columns
     y_train = y_train_full[:, [output_head.index(t) for t in TARGETS]]
     y_test = y_test_full[:, [output_head.index(t) for t in TARGETS]]
 
-    # 过滤包含零值的样本
+    # Filter samples containing zero values
     print("\nFiltering samples where any target is zero...")
     non_zero_mask_train = np.all(y_train != 0, axis=1)
     non_zero_mask_test = np.all(y_test != 0, axis=1)
@@ -432,19 +432,19 @@ def main():
     print(f"Train samples after filtering: {X_train.shape[0]}")
     print(f"Test samples after filtering: {X_test.shape[0]}")
 
-    # 对特定目标进行Log10处理
+    # Apply Log10 transformation to specific targets
     print("\nApplying log10 transformation to specific targets...")
     log_indices = [TARGETS.index(t) for t in LOG_TARGETS]
     for i in log_indices:
         y_train[:, i] = np.log10(y_train[:, i])
         y_test[:, i] = np.log10(y_test[:, i])
 
-    # ================== 数据标准化 ==================
+    # ================== Data Standardization ==================
     scaler_X = StandardScaler()
-    X_train_scaled = scaler_X.fit_transform(X_train)  # 仅使用训练数据拟合
+    X_train_scaled = scaler_X.fit_transform(X_train)  # Fit only on training data
     X_test_scaled = scaler_X.transform(X_test)
 
-    # 为每个目标创建单独的标准化器
+    # Create separate scalers for each target
     scalers_y = []
     y_train_scaled = np.zeros_like(y_train)
     y_test_scaled = np.zeros_like(y_test)
@@ -456,35 +456,35 @@ def main():
         scalers_y.append(scaler)
         print(f"Target {TARGETS[i]} - Mean: {scaler.mean_[0]:.4f}, Scale: {scaler.scale_[0]:.4f}")
 
-    # ================== 模型定义 ==================
+    # ================== Model Definition ==================
     model = DecoderOnlyModel(
         input_dim=X_train_scaled.shape[1],
         target_dim=len(TARGETS),
         pos_emb_dim=32
     ).to(device)
 
-    # 加载预训练模型
+    # Load pretrained model
     pretrain_model_path = "/home/huangl/myprojects/mos_model_nn/model/dataL/best_pretrain_model.pth"
-    print(f"\n加载预训练模型: {pretrain_model_path}")
+    print(f"\nLoading pretrained model: {pretrain_model_path}")
     state_dict = torch.load(pretrain_model_path, map_location=device)
     model.load_state_dict(state_dict)
-    model.eval()  # 设置为评估模式
+    model.eval()  # Set to evaluation mode
 
-    # ================== 测试阶段 ==================
-    print("\n开始测试阶段...")
+    # ================== Testing Phase ==================
+    print("\nStarting testing phase...")
     with torch.no_grad():
         pred_scaled = np.zeros_like(y_test_scaled)
-        fixed_order = np.arange(len(TARGETS))  # 固定目标顺序 [0,1,2,...,8]
+        fixed_order = np.arange(len(TARGETS))  # Fixed target order [0,1,2,...,8]
 
         for batch_start in range(0, len(X_test_scaled), batch_size):
             batch_end = batch_start + batch_size
             X_batch = X_test_scaled[batch_start:batch_end]
 
-            # 初始化输入为目标全为0
+            # Initialize input with all zeros for targets
             test_inputs = np.hstack((X_batch, np.zeros((len(X_batch), len(TARGETS)))))
             test_inputs = torch.tensor(test_inputs, dtype=torch.float32).to(device)
 
-            # 使用固定顺序
+            # Use fixed order
             order = fixed_order
             preds = {}
 
@@ -493,27 +493,27 @@ def main():
                 pred = outputs[:, step]
                 preds[step] = pred
 
-                # 用当前预测值更新输入
+                # Update input with current prediction
                 test_inputs = test_inputs.clone()
                 test_inputs[:, X_batch.shape[1] + step] = pred
 
-            # 保存结果
+            # Save results
             for t in range(len(TARGETS)):
                 pred_t = preds[t].cpu().numpy()
                 pred_scaled[batch_start:batch_end, t] = pred_t
 
-        # 逆标准化
+        # Inverse standardization
         y_pred_log = np.zeros_like(pred_scaled)
         for i in range(len(TARGETS)):
             y_pred_log[:, i] = scalers_y[i].inverse_transform(
                 pred_scaled[:, i].reshape(-1, 1)).flatten()
 
-        # 对Log目标进行逆变换
+        # Inverse transform for Log targets
         y_pred = y_pred_log.copy()
         for i in log_indices:
             y_pred[:, i] = 10 ** y_pred[:, i]
 
-        # 恢复原始测试集目标值
+        # Restore original test set target values
         y_true = np.zeros_like(y_test)
         for i in range(len(TARGETS)):
             if i in log_indices:
@@ -521,17 +521,17 @@ def main():
             else:
                 y_true[:, i] = y_test[:, i]
 
-    # ================== 结果可视化与评估 ==================
-    print("\n生成散点图...")
+    # ================== Result Visualization and Evaluation ==================
+    print("\nGenerating scatter plots...")
     plot_scatter_comparison(y_true, y_pred, TARGETS)
 
-    print("\n生成VGS变化曲线图...")
+    print("\nGenerating VGS variation plots...")
     plot_vgs_comparison(X_test, y_true, y_pred, TARGETS, input_head)
 
-    print("\n全局评估指标:")
+    print("\nGlobal evaluation metrics:")
     global_metrics = calculate_metrics(y_true, y_pred, TARGETS)
 
-    # 计算所有目标的平均指标
+    # Calculate average metrics across all targets
     avg_metrics = {
         'MSE': 0.0,
         'RMSE': 0.0,
@@ -543,28 +543,28 @@ def main():
     for target, metrics in global_metrics.items():
         print(f"\n{target}:")
         for k, v in metrics.items():
-            # 跳过NaN值
+            # Skip NaN values
             if not np.isnan(v):
                 avg_metrics[k] += v
-                # 只对有效目标计数
+                # Count only valid targets
                 if k == 'MSE':
                     valid_targets += 1
             print(f"{k}: {v:.4e}" if k != 'MRE(%)' else f"{k}: {v:.2f}%")
 
-    # 计算平均值
+    # Calculate averages
     if valid_targets > 0:
         avg_metrics['MSE'] /= valid_targets
         avg_metrics['RMSE'] /= valid_targets
         avg_metrics['R2'] /= valid_targets
         avg_metrics['MRE(%)'] /= valid_targets
 
-    # 打印平均指标
-    print("\n所有目标的平均指标:")
+    # Print average metrics
+    print("\nAverage metrics across all targets:")
     for metric, value in avg_metrics.items():
         if metric != 'MRE(%)':
-            print(f"平均{metric}: {value:.4e}")
+            print(f"Average {metric}: {value:.4e}")
         else:
-            print(f"平均{metric}: {value:.2f}%")
+            print(f"Average {metric}: {value:.2f}%")
 
 
 if __name__ == "__main__":
