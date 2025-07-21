@@ -89,8 +89,8 @@ The offering includes a pre-trained model and a version fine-tuned for 7nm nch_s
 
 | Model                                                                                | Train Size  | Test Size  | #Params| FLOPs | AP<sup>val</sup>|
 | ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ |
-| [pre_train_model](models/best_pretrain_model.pth)            | 18442944                  |80000                 | 111,915                     | 43.61G                           | 9.41%(test=7nm_nch_svt)                |
-| [pre_train_model](models/best_pretrain_model.pth)            | 18442944                  |80000                 | 111,915                     | 43.61G                           | 18.56%(test=7nm_pch_svt)                |
+| [zero_shot_model](models/best_pretrain_model.pth)            | 18442944                  |80000                 | 111,915                     | 43.61G                           | 9.41%(test=7nm_nch_svt)                |
+| [zero_shot_model](models/best_pretrain_model.pth)            | 18442944                  |80000                 | 111,915                     | 43.61G                           | 18.56%(test=7nm_pch_svt)               |
 | [fine_tune_model_n](models/models/best_finetune_model_n.pth) | 8000                      |80000                 | 111,915                     | 43.61G                           | 6.99%(test=7nm_nch_svt)                |
 | [fine_tune_model_p](models/models/best_finetune_model_p.pth) | 8000                      |80000                 | 111,915                     | 43.61G                           | 10.11%%(test=7nm_pch_svt)              |
 
