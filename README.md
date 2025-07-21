@@ -47,8 +47,8 @@ BSIMAR addresses these challenges in Compact Model:
 
 ```
 .
-├── pre_train.py             # Achieve learning for various nodes and devices
-├── fine_tuning.py           # Fine-tune the model on devices at a specific process node
+├── zeroshot.py              # Achieve learning for various nodes and devices
+├── finetune.py              # Fine-tune the model on devices at a specific process node
 ├── main.py                  # Main entry point for the training pipeline
 ├── model.py                 # Autoregressive model architecture definitions
 ├── requirements.txt         # Python dependencies
