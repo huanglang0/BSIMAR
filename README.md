@@ -97,54 +97,6 @@ The datasets used for training and testing CircuitGCL are available for download
 | [ptmodel](models/best_pretrain_model.pth) | 640                   | 39.5                 | 56.1 ± 0.8                     | 1.5 ± 0.0                           | 2.6                | 6.5               |
 | [ftmodel](models/best_finetune_model.pth) | 640                   | 47.0                 | 90.0 ± 1.2                     | 2.5 ± 0.0                           | 9.4                | 21.5              |
 
-##### Using `curl` to Download
-
-To download any of the datasets using `curl`, you can use the following command format in your terminal:
-
-```bash
-curl -O <download_link>
-```
-
-For example, to download the SSRAM dataset, you would run:
-
-```bash
-curl -O https://circuitgcl-sram.s3.ap-southeast-2.amazonaws.com/raw/ssram.pt
-```
-
-Replace `<download_link>` with the appropriate URL from the table above.
-
-##### Dataset Statistics
-
-Below is a summary of the statistics for each dataset as used in our experiments:
-
-| Split       | Dataset         | N    | NE    | #Links |
-| ----------- | --------------- | ---- | ----- | ------ |
-| Train.&Val. | SSRAM           | 87K  | 134K  | 131K   |
-| Test        | DIGITAL_CLK_GEN | 17K  | 36K   | 4K     |
-|             | TIMING_CTRL     | 18K  | 44K   | 5K     |
-|             | ARRAY_128_32    | 144K | 352K  | 110K   |
-|             | ULTRA8T         | 3.5M | 13.4M | 166K   |
-|             | SANDWICH-RAM    | 4.3M | 13.3M | 154K   |
-
-Note: The number of nodes (N), edges (NE), and links (#Links) are provided for reference to give an idea of the scale and complexity of each dataset.
-
----
-
-#### Dataset Usage
-
-Place your circuit datasets in the `./datasets/raw/` directory. The framework supports multiple SRAM circuit designs:
-
-```
-datasets/raw/
-├── ssram.pt
-├── digtime.pt
-├── timing_ctrl.pt
-├── array_128_32_8t.pt
-├── ultar8t.pt
-├── sandwich.pt
-└── ...
-```
-
 ### Model Training
 
 #### Basic Training
@@ -157,57 +109,22 @@ python main.py --dataset ssram+digtime+timing_ctrl+array_128_32_8t --task classi
 python main.py --dataset ssram+digtime+timing_ctrl+array_128_32_8t --task regression --task_level edge --regress_loss gai --batch_size 128
 ```
 
-#### With Contrastive Learning
-
-```bash
-# Enable contrastive learning pre-training
-python main.py --dataset ssram+digtime+timing_ctrl+array_128_32_8t --task classification --sgrl 1 --cl_epochs 800
-```
-
-### Key Arguments
-
-| Argument         | Description                          | Options                                                   |
-| ---------------- | ------------------------------------ | --------------------------------------------------------- |
-| `--task`         | Task type                            | `classification`, `regression`                            |
-| `--task_level`   | Prediction level                     | `node`, `edge`                                            |
-| `--dataset`      | Names of datasets (separated by `+`) | e.g., `ssram+digtime`                                     |
-| `--model`        | GNN model architecture               | `clustergcn`, `resgatedgcn`, `gat`, `gcn`, `sage`, `gine` |
-| `--sgrl`         | Enable contrastive learning          | `0` (disabled), `1` (enabled)                             |
-| `--regress_loss` | Regression loss function             | `mse`, `gai`, `bmc`, `bni`, `lds`                         |
-| `--class_loss`   | Classification loss function         | `bsmCE`, `focal`, `cross_entropy`                         |
-| `--batch_size`   | Training batch size                  | Integer (default: `128`)                                  |
-| `--cl_epochs`    | Contrastive learning epochs          | Integer (default: `500`)                                  |
 
 ## 🧠 Framework Components
 
-### 1. Self-supervised Graph Contrastive Learning (SGRL)
+### 1. Unsupervised pre-training+Supervised fine-tuning
 
-Our SGRL module enables better transferability across different circuit designs by learning circuit structure representations without relying on parasitic labels. Key features include:
+Our model achieves precise predictions for specific tasks by first undergoing extensive unsupervised pre-training across multiple process nodes and various devices, followed by supervised fine-tuning on the target task. Key features include:
 
-- Structure-aware graph augmentation strategies
-- Circuit-specific positive/negative sampling techniques
-- Efficient contrastive objective functions
+- Pre-training and fine-tuning strategies
+- Sampling techniques for pre-training and fine-tuning datasets
 
-### 2. Graph Neural Network Architectures
 
-Multiple state-of-the-art GNN architectures are supported:
+### 2. Implementation of the autoregressive structure
 
-- **Graph Convolutional Network (GCN)** - For basic graph representation learning
-- **GraphSAGE** - For efficient neighborhood sampling and aggregation
-- **Graph Attention Network (GAT)** - For attention-based message passing
-- **Residual Gated GCN** - For complex edge-conditioned convolutions
-- **Graph Isomorphism Network with Edge features (GINE)** - For enhanced expressivity
-- **Cluster GCN** - For efficient training on large circuit graphs
 
-### 3. Label Rebalancing Strategies
-
-Several advanced techniques are implemented to handle the severely imbalanced distribution of parasitic capacitance values:
-
-- **Generative-based Adaptive Importance Loss (GAI)** - Our proposed approach that adaptively weights samples based on frequency distribution
-- **Balanced MSE Loss** - Reweights the loss based on inverse sample frequency
-- **Balanced Negative Sampling** - Improves representation learning for rare parasitic values
-- **Local Distribution Smoothing (LDS)** - Reduces distribution bias during training
-- **Focal Loss** - Focuses on hard-to-predict parasitic values
+- **Target random order** - To make the predictions as independent as possible from the target output order
+- **Step-by-step prediction** - The previous prediction is fed as input to the next prediction, allowing subsequent predictions to benefit from the information in earlier ones
 
 ## 📊 Results
 
