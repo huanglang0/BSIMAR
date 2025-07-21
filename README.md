@@ -85,7 +85,7 @@ pip install -r requirements.txt
 #### Models Download Instructions
 
 The offering includes a pre-trained model and a version fine-tuned for 7nm nch_svt devices, allowing users to further customize the fine-tuned model based on their individual prediction targets.
-##### List of Models
+##### List of Models(test=7nm_nch_svt)
 
 | Model                                                                                | Train Size  | Test Size  | #Params| FLOPs | AP<sup>val</sup>|
 | ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ |
