@@ -80,18 +80,17 @@ pip install -r requirements.txt
 
 ## 🚀 Usage
 
-### Models
+### Model
 
 #### Models Download Instructions
 
-The datasets used for training and testing CircuitGCL are available for download via the following links. You can use `curl` to directly download these files from the provided URLs.
+The offering includes a pre-trained model and a version fine-tuned for 7nm nch_svt devices, allowing users to further customize the fine-tuned model based on their individual prediction targets.
+##### List of Models
 
-##### List of Datasets
-
-| Model                                                                                | Test Size  | Test Size  | #Params| FLOPs | AP<sup>val</sup>|
+| Model                                                                                | Train Size  | Test Size  | #Params| FLOPs | AP<sup>val</sup>|
 | ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ |
-| [ptmodel](models/best_pretrain_model.pth) | 640                   | 39.5                 | 56.1 ± 0.8                     | 1.5 ± 0.0                           | 2.6                |
-| [ftmodel](models/best_finetune_model.pth) | 640                   | 47.0                 | 90.0 ± 1.2                     | 2.5 ± 0.0                           | 9.4                |
+| [ptmodel](models/best_pretrain_model.pth) | 18442944                  |80000                 | 111,915                     | 43.61G                           | 9.41%                |
+| [ftmodel](models/best_finetune_model.pth) | 8000                      |80000                 | 111,915                     | 43.61G                           | 6.99%                |
 
 ### Model Training
 
