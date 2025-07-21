@@ -15,7 +15,7 @@ Official implementation of the paper "An Autoregressive Compact Model".
 - [Installation](#installation)
 - [Usage](#usage)
   - [Model](#Model)
-  - [Model Training](#model-training)
+  - [Model Usage](#model-usage)
 - [Framework Components](#framework-components)
 - [Results](#results)
 - [Citation](#citation)
