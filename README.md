@@ -52,7 +52,7 @@ BSIMAR addresses these challenges in Compact Model:
 ├── main.py                  # Main entry point for the training pipeline
 ├── model.py                 # Autoregressive model architecture definitions
 ├── requirements.txt         # Python dependencies
-├── sampling.py              # Data sampling utilities
+├── sampling_7nm_nchsvt.py   # Data sampling utilities
 └── utils.py                 # Utility functions
 ```
 
@@ -92,16 +92,19 @@ The offering includes a pre-trained model and a version fine-tuned for 7nm nch_s
 | [ptmodel](models/best_pretrain_model.pth) | 18442944                  |80000                 | 111,915                     | 43.61G                           | 9.41%                |
 | [ftmodel](models/best_finetune_model.pth) | 8000                      |80000                 | 111,915                     | 43.61G                           | 6.99%                |
 
-### Model Training
+### Model usage
 
-#### Basic Training
+#### Basic usage
 
 ```bash
-# For node classification task
-python main.py --dataset ssram+digtime+timing_ctrl+array_128_32_8t --task classification --task_level node --batch_size 128
+# For zero-shot node target prediction
+python pre_train.py 
 
-# For edge regression task with GAI loss
-python main.py --dataset ssram+digtime+timing_ctrl+array_128_32_8t --task regression --task_level edge --regress_loss gai --batch_size 128
+# For fine-tune node target prediction
+python fine_tuning.py
+
+# For full workflow implementation
+python main.py
 ```
 
 
